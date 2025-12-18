@@ -59,31 +59,235 @@ The project focuses on building a production-style HTTP server with authenticati
 
 ## 📡 API Endpoints
 
-### Auth
+Below is a manual reference of all available HTTP endpoints exposed by the Chirpy API.
 
-* `POST /api/login`
-* `POST /api/refresh`
-* `POST /api/revoke`
+---
 
-### Users
+### 🔐 Authentication
 
-* `POST /api/users`
-* `PUT /api/users`
+#### `POST /api/login`
 
-### Chirps
+Authenticate a user using email and password.
 
-* `GET /api/chirps`
-* `GET /api/chirps/:chirpID`
-* `POST /api/chirps`
-* `DELETE /api/chirps/:chirpID`
+**Request body**
 
-### Webhooks
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
 
-* `POST /api/polka/webhooks`
+**Response (200)**
 
-### Admin
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "token": "<access_token>",
+  "refreshToken": "<refresh_token>"
+}
+```
 
-* `POST /admin/reset`
+---
+
+#### `POST /api/refresh`
+
+Generate a new access token using a valid refresh token.
+
+**Headers**
+
+```
+Authorization: Bearer <refresh_token>
+```
+
+**Response (200)**
+
+```json
+{
+  "token": "<new_access_token>"
+}
+```
+
+---
+
+#### `POST /api/revoke`
+
+Revoke a refresh token (logout).
+
+**Headers**
+
+```
+Authorization: Bearer <refresh_token>
+```
+
+**Response (204)**
+*No content*
+
+---
+
+### 👤 Users
+
+#### `POST /api/users`
+
+Create a new user account.
+
+**Request body**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+**Response (201)**
+
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "isChirpyRed": false
+}
+```
+
+---
+
+#### `PUT /api/users`
+
+Update the authenticated user's email and password.
+
+**Headers**
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Request body**
+
+```json
+{
+  "email": "new@example.com",
+  "password": "newPassword123"
+}
+```
+
+**Response (200)**
+
+```json
+{
+  "id": "uuid",
+  "email": "new@example.com",
+  "isChirpyRed": false
+}
+```
+
+---
+
+### 🐦 Chirps
+
+#### `GET /api/chirps`
+
+Fetch all chirps.
+
+**Optional query params**
+
+* `authorId=<uuid>` – filter by author
+* `sort=asc|desc` – sort by creation date (default: asc)
+
+---
+
+#### `GET /api/chirps/:chirpID`
+
+Fetch a single chirp by ID.
+
+---
+
+#### `POST /api/chirps`
+
+Create a new chirp (authenticated).
+
+**Headers**
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Request body**
+
+```json
+{
+  "body": "Hello Chirpy!"
+}
+```
+
+**Response (201)**
+
+```json
+{
+  "id": "uuid",
+  "body": "Hello Chirpy!",
+  "userId": "uuid",
+  "createdAt": "timestamp"
+}
+```
+
+---
+
+#### `DELETE /api/chirps/:chirpID`
+
+Delete a chirp (only by its owner).
+
+**Headers**
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Response (204)**
+*No content*
+
+---
+
+### 💎 Webhooks
+
+#### `POST /api/polka/webhooks`
+
+Webhook endpoint used to upgrade users to Chirpy Red.
+
+**Headers**
+
+```
+Authorization: ApiKey <POLKA_KEY>
+```
+
+**Request body**
+
+```json
+{
+  "event": "user.upgraded",
+  "data": {
+    "userId": "uuid"
+  }
+}
+```
+
+**Response (204)**
+*No content*
+
+---
+
+### 🛠 Admin
+
+#### `POST /admin/reset`
+
+Reset all users (development only).
+
+**Response (200)**
+
+```text
+OK
+```
 
 ---
 
@@ -112,4 +316,3 @@ This project demonstrates:
 ## 🏁 Final Notes
 
 Chirpy is not just a demo—it mirrors patterns used in real-world backend systems. It represents a full integration of concepts learned throughout the Boot.dev backend path.
-
